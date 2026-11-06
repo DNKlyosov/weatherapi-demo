@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f4f8fd">
+  <meta name="description" content="Погодный сайт с подключением к WeatherAPI.com и просмотром реального HTTP-запроса и JSON.">
+  <title>Погода — WeatherAPI.com</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Погода — главная">
+        <span class="brand-symbol" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="4.5" fill="#f4ae4f"/><path d="M11.8 20h6a4 4 0 0 0 .7-7.94 6.2 6.2 0 0 0-11.7 2.05A3 3 0 0 0 11.8 20Z" fill="#dce9f6" stroke="#728ca6" stroke-width="1.2"/></svg></span>
+        <span>Погода</span>
+      </a>
+      <a class="header-link" href="https://www.weatherapi.com/docs/realtime-api/" target="_blank" rel="noopener noreferrer">Документация API <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main>
+      <section class="search-section" aria-labelledby="search-title">
+        <div class="intro-line"><span class="soft-label">Текущая погода</span><span class="source-text">Источник: <a href="https://www.weatherapi.com/" target="_blank" rel="noopener noreferrer">WeatherAPI.com</a></span></div>
+        <h1 id="search-title">Узнайте погоду в городе</h1>
+        <form id="search-form" class="search-form" autocomplete="off">
+          <label class="visually-hidden" for="city-input">Название города</label>
+          <div class="input-wrap">
+            <svg aria-hidden="true" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5" stroke-linecap="round"/></svg>
+            <input id="city-input" name="city" type="search" maxlength="100" value="Белгород" placeholder="Например, Белгород" required>
+          </div>
+          <button id="search-button" class="primary-button" type="submit">Показать погоду <span aria-hidden="true">→</span></button>
+        </form>
+        <div id="status" class="status" role="status" aria-live="polite">Введите город и нажмите «Показать погоду».</div>
+      </section>
+
+      <section id="weather-card" class="weather-panel" aria-label="Погодные данные" hidden>
+        <div class="weather-main">
+          <div class="weather-meta">
+            <p class="eyebrow">Сейчас</p>
+            <h2 id="place-name">—</h2>
+            <p id="place-region" class="region">—</p>
+            <p id="updated-at" class="updated">—</p>
+          </div>
+          <div class="current-weather">
+            <img id="condition-icon" class="condition-icon" alt="" width="80" height="80" hidden>
+            <div id="temperature" class="temperature">—</div>
+            <p id="condition-text" class="condition">—</p>
+          </div>
+        </div>
+        <div class="weather-stats">
+          <div class="stat"><span class="stat-label">Ощущается как</span><strong id="feels-like">—</strong></div>
+          <div class="stat"><span class="stat-label">Влажность</span><strong id="humidity">—</strong></div>
+          <div class="stat"><span class="stat-label">Ветер</span><strong id="wind">—</strong></div>
+          <div class="stat"><span class="stat-label">Давление</span><strong id="pressure">—</strong></div>
+        </div>
+      </section>
+
+      <section class="explain" aria-labelledby="explain-title">
+        <details id="technical-details">
+          <summary><span class="summary-wrap"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" fill="none"><path d="M8 5.5 2.5 12 8 18.5M16 5.5l5.5 6.5-5.5 6.5M14.5 3l-5 18" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="explain-title">Как получены эти данные?</span></span><span class="chevron" aria-hidden="true">⌄</span></summary>
+          <div class="details-content">
+            <p class="details-lede">Браузер запрашивает погоду у нашего Python-сервера. Сервер обращается к WeatherAPI.com, получает JSON и передаёт его странице. API-ключ хранится только на сервере.</p>
+            <ol class="request-steps">
+              <li>
+                <div class="step-title"><span class="step-index">1</span><strong>Браузер → наш сервер</strong><span id="client-status" class="code-status">Ожидает запроса</span></div>
+                <div class="code-line"><span class="method-tag">GET</span><code id="client-url">/api/weather?city=Белгород</code></div>
+                <p class="step-note">Этот запрос виден в браузере: F12 → Network → Fetch/XHR.</p>
+              </li>
+              <li>
+                <div class="step-title"><span class="step-index">2</span><strong>Наш сервер → WeatherAPI.com</strong><span id="provider-status" class="code-status">Ожидает запроса</span></div>
+                <div class="code-line"><span class="method-tag">GET</span><code id="provider-url">https://api.weatherapi.com/v1/current.json?key=***&amp;q=Белгород&amp;lang=ru</code></div>
+                <p class="step-note">Внешний запрос выполняет Python. Его можно увидеть в терминале сервера. Ключ в этой записи скрыт.</p>
+              </li>
+              <li>
+                <div class="step-title"><span class="step-index">3</span><strong>Полученный JSON → данные на странице</strong></div>
+                <div id="field-map" class="field-map">
+                  <p class="empty-map">После запроса здесь появятся реальные значения полей ответа.</p>
+                </div>
+              </li>
+            </ol>
+            <div class="json-heading"><strong>Исходный ответ WeatherAPI.com</strong><button id="copy-json" type="button" class="secondary-button" disabled>Копировать JSON</button></div>
+            <pre class="json-pre" id="json-output">Сначала запросите погоду — здесь появится JSON-ответ внешнего сервиса.</pre>
+            <p class="detail-footer">Адрес `/v1/current.json`, параметры `key`, `q`, `lang` и имена полей описаны в <a href="https://www.weatherapi.com/docs/" target="_blank" rel="noopener noreferrer">документации WeatherAPI.com ↗</a>.</p>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <footer class="footer"><span>Данные: <a href="https://www.weatherapi.com/" target="_blank" rel="noopener noreferrer">WeatherAPI.com</a></span><span>Учебный пример HTTP API · Python + JavaScript</span></footer>
+  </div>
+</body>
+</html>
